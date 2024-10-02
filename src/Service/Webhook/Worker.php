@@ -5,6 +5,7 @@ namespace App\Service\Webhook;
 use App\Model\Webhook;
 use Carbon\Carbon;
 use LogicException;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -29,6 +30,7 @@ class Worker
      */
     public function __construct(
         protected HttpClientInterface $httpClient,
+        protected LoggerInterface $logger,
         protected int $maxTimeout = 60,
         protected float $backoffMultiplier = 2,
         protected int $initialBackoffTime = 1,
@@ -47,6 +49,8 @@ class Worker
     {
         $currentBackoff = $this->initialBackoffTime;
 
+        $this->logger->info('Starting processing of ' . $webhook->getUrl());
+
         // Whilst current backoff < maxTimeout
         while($currentBackoff < $this->maxTimeout)
         {
@@ -56,6 +60,7 @@ class Worker
 
                 // If the request passes then return
                 if (in_array($result->getStatusCode(), $this->successCodes)) {
+                    $this->logger->info('Request successful');
                     return true;
                 }
             } catch (TransportExceptionInterface $te) {
@@ -63,15 +68,19 @@ class Worker
                 // to retry.
             }
 
+            $this->logger->info('Request failed, sleeping for ' . $currentBackoff);
+
             // If the request fails then wait for the current backoff time
             // We're using Carbon::sleep() here because it provides us a nice way to mock the sleep() function in tests.
             Carbon::sleep($currentBackoff);
 
             // Increment the backoff time for the next go of the loop
             $currentBackoff *= $this->backoffMultiplier;
+            $this->logger->info('Raising backoff time to ' . $currentBackoff . ' and retrying');
         }
 
         // Log that a request has reached a timeout
+        $this->logger->info('Maximum backoff time reached, aborting');
         return false;
     }
 }

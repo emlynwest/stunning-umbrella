@@ -14,7 +14,7 @@ TODO: Check if this can be simplified
 
 ### Running the command
 
-1. `docker compose exec php bin/console webhook:execute`
+1. `docker compose exec php bin/console webhook:execute -vvv`
 
 ### Tests
 
@@ -46,8 +46,8 @@ the implementation.
 
 ## Trade-offs
 
- - Lack of logging.
- - Hardcoded config.
+ - Hardcoded config - Ideally config (such as the webhook location) would not be hardcoded and either provided via
+   config or as a parameter to the script.
  - Testing is limited to unit testing only. Given more time I'd implement more extensive Integration and E2E tests.
  - Direct references to `App\Service\Webhook\Dispatcher` should be switched out to reference an interface to allow.
    the logic to be easily switched out at a later date using dependency injection. This would make it much easier to change

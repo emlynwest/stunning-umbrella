@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 
 class DispatcherTest extends TestCase
 {
@@ -22,7 +23,9 @@ class DispatcherTest extends TestCase
     {
         $this->workerMock = $this->prophesize(Worker::class);
 
-        $this->dispatcher = new Dispatcher($this->workerMock->reveal());
+        $loggerMock = $this->prophesize(LoggerInterface::class);
+
+        $this->dispatcher = new Dispatcher($this->workerMock->reveal(), $loggerMock->reveal());
     }
 
     public function testDispatch(): void

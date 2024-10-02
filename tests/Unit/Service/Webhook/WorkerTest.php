@@ -9,6 +9,7 @@ use LogicException;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
@@ -25,7 +26,15 @@ class WorkerTest extends TestCase
     {
         $this->httpClientMock = $this->prophesize(HttpClientInterface::class);
 
-        return new Worker($this->httpClientMock->reveal(), $maxTimeout, $backoffMultiplier, $initialBackoffTime);
+        $logger = $this->prophesize(LoggerInterface::class);
+
+        return new Worker(
+            $this->httpClientMock->reveal(),
+            $logger->reveal(),
+            $maxTimeout,
+            $backoffMultiplier,
+            $initialBackoffTime
+        );
     }
 
     /**
