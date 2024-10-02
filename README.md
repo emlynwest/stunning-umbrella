@@ -27,3 +27,25 @@ of a pain to set up.
 
 Describe any design decisions, security considerations, and trade-offs made during
 the implementation.
+
+## Design decisions
+
+ - Functionality is reasonably seperated in to services, allowing functionality to be plugged in to other parts of the 
+   system as desired.
+ - No validation on the CSV file. Normally this would be something I would include but has been left out for the sake of
+   timeboxing the tech test.
+ - Webhook dispatcher thin layer to provide an abstraction for running the webhook logic. A better implementation could
+   be switched in at a later date without having to change too much code.
+
+## Security considerations
+
+ - No validation of webhook URLs, we could be requesting anything!
+
+## Trade-offs
+
+ - Lack of logging.
+ - Hardcoded config.
+ - Testing is limited to unit testing only. Given more time I'd implement more extensive Integration and E2E tests.
+ - Direct references to `App\Service\Webhook\Dispatcher` should be switched out to reference an interface to allow.
+   the logic to be easily switched out at a later date using dependency injection. This would make it much easier to change
+   the queuing strategy. (eg, for RabbitMQ, Kafka, etc)
