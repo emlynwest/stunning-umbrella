@@ -9,6 +9,8 @@ use App\Model\Webhook;
  */
 class Dispatcher
 {
+    protected int $endpointFailureLimit = 5;
+
     public function __construct(protected Worker $worker){}
 
     /**
@@ -18,8 +20,17 @@ class Dispatcher
      */
     public function dispatch(array $webhooks): void
     {
+        $failedEndpointCount = [];
+
         foreach ($webhooks as $webhook) {
-            $this->worker->process($webhook);
+            if ($failedEndpointCount[$webhook->getUrl()] >= $this->endpointFailureLimit) {
+                // TODO: Log out a failure because we hit the retry limit
+                continue;
+            }
+
+            if (!$this->worker->process($webhook)) {
+                $failedEndpointCount[$webhook->getUrl()] += 1;
+            }
         }
     }
 }
